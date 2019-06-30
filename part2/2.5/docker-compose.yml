@@ -1,0 +1,19 @@
+version: '3.5'
+
+services:
+  backend:
+    image: backend
+    build: .
+    ports:
+     - 8000:8000
+    environment:
+     - REDIS=redis
+     - REDIS_PORT=6379
+    container_name: backend
+
+  redis:
+    image: redis
+    build: .
+    ports:
+     - 6379:6379
+    container_name: redis

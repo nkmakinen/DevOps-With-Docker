@@ -1,0 +1,9 @@
+version: '3.5'
+
+services:
+  first-volume-exercise:
+    image: devopsdockeruh/first_volume_exercise
+    build: .
+    volumes:
+     - //c/Users/nkmak/Desktop/docker/part2/2.1:/usr/app/
+    container_name: first_volume_exercise

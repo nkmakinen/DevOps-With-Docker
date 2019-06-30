@@ -1,0 +1,422 @@
+EX-1.1
+C:\Users\nkmak>docker ps -a
+    CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                          PORTS               NAMES
+    8ffc5899901a        httpd               "httpd-foreground"       4 minutes ago       Exited (0) About a minute ago                       cranky_poincare
+    0f88eb385bdf        mongo               "docker-entrypoint.s…"   4 minutes ago       Exited (0) 59 seconds ago                           quirky_matsumoto
+    0a191972cdf6        nginx               "nginx -g 'daemon of…"   7 minutes ago       Up 7 minutes                    80/tcp              mystifying_elion
+
+EX-1.3
+C:\Users\nkmak>docker run -it devopsdockeruh/pull_exercise
+    Give me the password: basics
+    You found the correct password. Secret message is:
+    "This is the secret message"
+
+EX-1.4
+C:\Users\nkmak>docker pull devopsdockeruh/exec_bash_exercise
+C:\Users\nkmak>docker start 489
+C:\Users\nkmak>docker exec -it dazzling_benz bash
+    root@8810bb0df144:/usr/app# cat logs.txt
+    Sun, 21 Apr 2019 09:08:31 GMT
+    Sun, 21 Apr 2019 09:08:34 GMT
+    Secret message is:
+    "Docker is easy"
+
+EX-1.5
+C:\Users\nkmak>docker run -d -it ubuntu:16.04 sh -c "echo 'Input website:'; read website; echo 'Searching..'; sleep 1; curl http://$website;"
+C:\Users\nkmak>docker exec -it 74 bash
+    root@74b547991d02:/# apt-get update && apt-get install curl wget
+C:\Users\nkmak>docker attach 74
+    google.fi
+    Searching..
+    <HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <TITLE>301 Moved</TITLE></HEAD><BODY>
+    <H1>301 Moved</H1>
+    The document has moved
+    <A HREF="http://www.google.fi/">here</A>.
+    </BODY></HTML>
+
+EX-1.6
+Dockerfile:
+    FROM devopsdockeruh/overwrite_cmd_exercise
+    CMD ["", "-c"]
+C:\Users\nkmak\Desktop\docker\ex1.6>docker build -t docker-clock .
+C:\Users\nkmak\Desktop\docker\ex1.6>docker run docker-clock
+
+EX-1.7
+Dockerfile:
+    FROM ubuntu:16.04
+    WORKDIR /mydir
+    RUN apt-get update && apt-get install -y curl wget dos2unix
+    COPY start.sh .
+    RUN dos2unix start.sh
+    CMD ["./start.sh"]
+start.sh:
+    #!/bin/sh
+    echo "Input website:";
+    read website;
+    echo "Searching..";
+    sleep 1;
+    curl http://$website;
+C:\Users\nkmak\Desktop\docker\ex1.7>docker build -t curler .
+C:\Users\nkmak\Desktop\docker\ex1.7>docker run -it curler
+    Input website:
+    helsinki.fi
+    Searching..
+    <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+    <html><head>
+    <title>301 Moved Permanently</title>
+    </head><body>
+    <h1>Moved Permanently</h1>
+    <p>The document has moved <a href="http://www.helsinki.fi/">here</a>.</p>
+    </body></html>
+
+EX-1.8
+C:\Users\nkmak\Desktop\docker>docker run -v C:\Users\nkmak\Desktop\docker\logs.txt:/usr/app/logs.txt devopsdockeruh/first_volume_exercise
+logs.txt:
+    Sun, 21 Apr 2019 18:06:31 GMT
+    Sun, 21 Apr 2019 18:06:34 GMT
+    Sun, 21 Apr 2019 18:06:37 GMT
+    Sun, 21 Apr 2019 18:06:40 GMT
+    Secret message is:
+    "Volume bind mount is easy"
+
+EX-1.9
+C:\Users\nkmak\Desktop\docker>docker pull devopsdockeruh/ports_exercise
+C:\Users\nkmak\Desktop\docker>docker run -p 1234:80 devopsdockeruh/ports_exercise
+
+EX-1.10
+Dockerfile
+    FROM ubuntu:16.04
+    WORKDIR /frontend-app
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git
+    RUN curl -sL https://deb.nodesource.com/setup_11.x | bash
+    RUN apt-get install -y nodejs
+    RUN git clone https://github.com/docker-hy/frontend-example-docker.git
+    RUN npm install
+    CMD ["npm", "start"]
+C:\Users\nkmak\Desktop\docker\frontend-example-docker-master>docker build -t frontend-app .
+C:\Users\nkmak\Desktop\docker>docker run -p 1234:5000 -v C:\Users\nkmak\Desktop\docker\frontend-example-docker-master:/frontend-app frontend-app
+
+EX-1.11
+Dockerfile
+    FROM ubuntu:16.04
+    WORKDIR /backend-app
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git
+    RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
+    RUN apt-get install -y nodejs
+    RUN git clone https://github.com/docker-hy/backend-example-docker.git /backend
+    RUN npm install
+    EXPOSE 8000
+    CMD ["npm", "start"]
+C:\Users\nkmak\Desktop\docker\backend-example-docker-master>docker build -t backend .
+C:\Users\nkmak\Desktop\docker\backend-example-docker-master>docker run -p 8000:8000 -v C:\Users\nkmak\Desktop\docker\backend-example-docker-master\logs.txt:/backend/logs.txt backend
+
+EX-1.12
+Dockerfile (backend)
+    FROM ubuntu:16.04
+    WORKDIR /backend
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git
+    RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
+    RUN apt-get install -y nodejs
+    RUN git clone https://github.com/docker-hy/backend-example-docker.git /backend
+    RUN npm install
+    ENV FRONT_URL http://localhost:5000
+    EXPOSE 8000
+    CMD ["npm", "start"]
+
+Dockerfile (frontend)
+    FROM ubuntu:16.04
+    WORKDIR /frontend-app
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git
+    RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
+    RUN apt-get install -y nodejs
+    RUN git clone https://github.com/docker-hy/frontend-example-docker.git
+    RUN npm install
+    ENV API_URL http://localhost:8000
+    EXPOSE 5000
+    CMD ["npm", "start"]
+docker build & docker run commands
+
+EX-1.13
+Dockerfile
+    FROM openjdk:8-jdk
+    WORKDIR /java
+    RUN git clone https://github.com/docker-hy/spring-example-project.git /java
+    RUN ./mvnw package
+    EXPOSE 8080
+    CMD ["java", "-jar", "./target/docker-example-1.1.3.jar"]
+docker build & docker run
+
+EX-1.14
+Dockerfile
+    FROM ruby:2.6.0
+    WORKDIR /rails
+    RUN apt-get update && apt-get install -y wget curl apt-utils git software-properties-common
+    RUN curl -sL https://deb.nodesource.com/setup_10.x | bash
+    RUN apt-get install -y nodejs
+    RUN git clone https://github.com/docker-hy/rails-example-project.git /rails
+    RUN gem install bundler
+    RUN bundle install
+    RUN rails db:migrate RAILS_ENV=development
+    EXPOSE 3000
+    CMD ["rails", "s"]
+docker build & docker run
+
+EX-1.15
+Dockerfile
+    FROM bayesimpact/react-base
+    WORKDIR /usr/app
+    RUN rm -rf * .babelrc
+    RUN git clone https://github.com/nkmakinen/fullstackopen2018_osa1.git /usr/app
+    RUN npm install
+    EXPOSE 3000
+    CMD ["npm", "start"]
+
+EX-1.16
+https://cloud.docker.com/repository/docker/nkmakinen/react-app-1
+
+EX-1.17
+************************* TBD ************************* 
+
+EX-1.18
+************************* TBD ************************* 
+
+EX-2.1
+************************* TBD ************************* 
+Ongelmia volumien kanssa. Johtuiko Windows-hostista?
+
+EX-2.2
+docker-compose.yml
+    version: '3.5'
+    services:
+    ports-exercise:
+        image: devopsdockeruh/ports_exercise
+        ports:
+        - 8000:80
+
+EX-2.3
+docker-compose.yml
+    version: '3.5'
+    services:
+    backend:
+        image: backend
+        build: .
+        ports:
+        - 8000:8000
+        container_name: backend
+    frontend:
+        image: frontend
+        build: .
+        ports:
+        - 5000:5000
+        container_name: frontend
+
+EX-2.4
+docker-compose up --scale compute=5
+
+EX-2.5
+docker-compose.yml
+    version: '3.5'
+    services:
+    backend:
+        image: backend
+        build: .
+        ports:
+        - 8000:8000
+        environment:
+        - REDIS=redis
+        - REDIS_PORT=6379
+        container_name: backend
+    redis:
+        image: redis
+        build: .
+        ports:
+        - 6379:6379
+        container_name: redis
+
+EX-2.6
+docker-compose.yml
+    version: '3.5'
+    services:
+    backend:
+        image: backend
+        build: .
+        ports:
+        - 8000:8000
+        environment:
+        - DB_USERNAME=example
+        - DB_PASSWORD=example
+        - DB_NAME=example
+        - DB_HOST=db
+        depends_on: 
+        - db
+        container_name: backend
+    frontend:
+        image: frontend
+        build: .
+        ports:
+        - 5000:5000
+        container_name: frontend
+    db:
+        image: postgres
+        restart: unless-stopped
+        ports:
+        - 5432:5432
+        environment:
+        - POSTGRES_USER=example
+        - POSTGRES_PASSWORD=example
+        - POSTGRES_DB=example
+        volumes:
+        - database:/var/lib/postgresql/data
+        container_name: db
+    volumes:
+    database:
+
+EX-2.7
+docker-compose.yml
+    version: '3.5'
+    services:
+    frontend:
+        image: ml-frontend
+        build:
+        context: https://github.com/docker-hy/ml-kurkkumopo-frontend.git
+        ports:
+        - 3000:3000
+        container_name: frontend
+    backend:
+        image: ml-backend
+        build:
+        context: https://github.com/docker-hy/ml-kurkkumopo-backend.git
+        ports:
+        - 5000:5000
+        volumes:
+        - ./mymodel:/src/model
+        container_name: backend
+
+    training:
+        image: ml-training
+        build:
+        context: https://github.com/docker-hy/ml-kurkkumopo-training.git
+        volumes:
+        - ./mymodel:/src/model
+        - ./myimages:/src/imgs
+        depends_on:
+        - backend
+        container_name: training
+    volumes:
+    mymodel:
+    myimages:
+
+EX-2.8
+docker-compose.yml
+    version: '3.5'
+    services:
+    backend:
+        image: backend
+        build: .
+        ports:
+        - 8000:8000
+        environment:
+        - DB_USERNAME=example
+        - DB_PASSWORD=example
+        - DB_NAME=example
+        - DB_HOST=db
+        depends_on: 
+        - db
+        container_name: backend
+    frontend:
+        image: frontend
+        build: .
+        ports:
+        - 5000:5000
+        container_name: frontend
+    proxy: 
+        image: jwilder/nginx-proxy 
+        volumes: 
+        - /var/run/docker.sock:/tmp/docker.sock:ro 
+        - ./nginx.conf:/etc/nginx/nginx.conf
+        ports: 
+        - 80:80 
+    db:
+        image: postgres
+        restart: unless-stopped
+        ports:
+        - 5432:5432
+        environment:
+        - POSTGRES_USER=example
+        - POSTGRES_PASSWORD=example
+        - POSTGRES_DB=example
+        volumes:
+        - database:/var/lib/postgresql/data
+        container_name: db
+    volumes:
+    database:
+
+EX-2.9
+Ongelmia volumien kanssa. Johtuiko Windows-hostista?
+
+EX-2.10
+Ei jaksa.
+
+EX-3.1
+Backend : 639MB -> 346MB
+Frontend: 736MB -> 346MB
+
+EX-3.2
+Dockefile
+    FROM ubuntu:16.04
+    ENV LC_ALL=C.UTF-8
+    RUN apt-get update && apt-get install -y wget apt-utils python3 python3-pip ffmpeg && \
+        pip3 install --user --upgrade yle-dl && \
+        cp /root/.local/bin/yle-dl /usr/local/bin/ && \
+        chmod a+x /usr/local/bin/yle-dl
+    WORKDIR /yle-dl
+    ENTRYPOINT ["yle-dl"]
+
+EX-3.3
+Dockerfile (backend)
+    FROM ubuntu:16.04
+    WORKDIR /backend
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git && \
+        curl -sL https://deb.nodesource.com/setup_10.x | bash && \
+        apt-get install -y nodejs && \
+        git clone https://github.com/docker-hy/backend-example-docker.git /backend && \
+        apt-get purge -y --auto-remove curl && \ 
+        rm -rf /var/lib/apt/lists/* && \
+        useradd -m app && \
+        chown app:app /backend
+    USER app
+    RUN npm install
+    ENV FRONT_URL http://localhost:5000
+    EXPOSE 8000
+    CMD ["npm", "start"]
+
+Dockerfile (frontend)
+    FROM ubuntu:16.04
+    WORKDIR /frontend-app
+    RUN apt-get update && apt-get install -y wget curl npm apt-utils git && \
+        curl -sL https://deb.nodesource.com/setup_10.x | bash && \
+        apt-get install -y nodejs && \
+        git clone https://github.com/docker-hy/frontend-example-docker.git /frontend-app && \
+        apt-get purge -y --auto-remove curl && \
+        rm -rf /var/lib/apt/lists/* && \
+        useradd -m app && \
+        chown app:app /frontend-app
+    USER app
+    RUN npm install
+    ENV API_URL http://localhost:8000
+    EXPOSE 5000
+    CMD ["npm", "start"]
+
+EX-3.4
+FROM node:alpine
+Backend: 162MB
+Frontend: 258MB
+
+EX-3.5
+
+EX-3.6
+
+EX-3.7
+
+EX-3.8
